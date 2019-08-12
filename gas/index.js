@@ -1,5 +1,13 @@
 'use strict';
 
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var freeGlobal = (typeof global === "undefined" ? "undefined" : _typeof(global)) == 'object' && global && global.Object === Object && global;
@@ -8001,43 +8009,57 @@ if (symIterator$1) {
  */
 
 
-function heapPermutation(arr, size, n) {
+var dir = SpreadsheetApp.Direction;
+var spr = SpreadsheetApp.getActive();
+var ui = SpreadsheetApp.getUi();
+var wSheet = spr.getSheetByName('Words');
+var sSheet = spr.getSheetByName('Sentences');
+var pSheet = spr.getSheetByName('Paragraphs');
+
+function getSentences() {
+  if (isEmpty(sSheet.getRange('A:A').getValue())) {
+    ui.alert('Error', 'Sentences cannot be empty. Please define the sentences in the \'Sentences\' sheet.', ui.ButtonSet.OK);
+    return false;
+  }
+
+  var lastRow = sSheet.getRange('A1').getNextDataCell(dir.DOWN).getRow();
+  return flatten(sSheet.getRange(1, 1, lastRow, 1).getValues());
+}
+
+function heapPermutation(arr) {
+  var n = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : arr.length;
   var result = [];
-  if (size === 1) result.push(arr);
+  if (n <= 1) return [arr.slice()];
 
-  for (var i = 0; i < size; i++) {
-    heapPermutation(arr, size - 1, n);
+  for (var i = 0; i <= n - 1; i++) {
+    result.push.apply(result, _toConsumableArray(heapPermutation(arr, n - 1)));
 
-    if (size % 2 == 1) {
-      var temp = arr[0];
-      arr[0] = arr[size - 1];
-      arr[size - 1] = temp;
+    if (n % 2 === 0) {
+      var _ref = [arr[i], arr[n - 1]];
+      arr[n - 1] = _ref[0];
+      arr[i] = _ref[1];
     } else {
-      var _temp = arr[i];
-      arr[i] = arr[size - 1];
-      arr[size - 1] = _temp;
+      var _ref2 = [arr[0], arr[n - 1]];
+      arr[n - 1] = _ref2[0];
+      arr[0] = _ref2[1];
     }
   }
 
   return result;
 }
 
-var dir = SpreadsheetApp.Direction;
-var ss = SpreadsheetApp.getActive();
-var wordsSheet = ss.getSheetByName('Words');
-var sentencesSheet = ss.getSheetByName('Sentences');
-var paragraphs = ss.getSheetByName('Paragraphs');
-
-function onOpen(e) {
-  ui.createAddonMenu().addItem('Generate paragraphs', 'generate').addToUi();
-}
-
-function getSentences() {
-  var lastRow = sentencesSheet.getRange('A1').getNextDataCell(dir.DOWN).getRow();
-  return flatten(sentencesSheet.getRange(1, 1, lastRow, 1).getValues());
+function onOpen() {
+  ui.createMenu('Paragrapher').addItem('Generate paragraphs', 'generate').addToUi();
 }
 
 function generate() {
   var sentences = getSentences();
-  heapPermutation(sentences, sentences.length, sentences.length);
+
+  if (sentences) {
+    var permutations = heapPermutation(sentences);
+    var paragraphs = permutations.map(function (p) {
+      return [join(p, ' ')];
+    });
+    pSheet.getRange(1, 1, paragraphs.length).setValues(paragraphs);
+  }
 }

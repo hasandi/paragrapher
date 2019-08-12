@@ -1,30 +1,27 @@
-import {flatten} from 'lodash-es'
-import {heapPermutation} from './heapPermutation'
-
-const dir = SpreadsheetApp.Direction
-const ss = SpreadsheetApp.getActive()
-const wordsSheet = ss.getSheetByName('Words')
-const sentencesSheet = ss.getSheetByName('Sentences')
-const paragraphs = ss.getSheetByName('Paragraphs')
+import { join } from 'lodash-es'
+import { ui, pSheet } from './globals'
+import { getSentences } from './getSentences'
+import { heapPermutation } from './heapPermutation'
 
 /**
  * The event handler triggered when opening the spreadsheet.
- * @param e - the onOpen event
  */
-function onOpen(e) {
-    ui.createAddonMenu()
+function onOpen() {
+    ui.createMenu('Paragrapher')
         .addItem('Generate paragraphs', 'generate')
         .addToUi()
 }
 
-function getSentences() {
-    let lastRow = sentencesSheet.getRange('A1').getNextDataCell(dir.DOWN).getRow()
-
-    return flatten(sentencesSheet.getRange(1, 1, lastRow, 1).getValues())
-}
-
+/**
+ * Generate the paragraphs.
+ */
 function generate() {
     let sentences = getSentences()
 
-    heapPermutation(sentences, sentences.length, sentences.length)
+    if (sentences) {
+        let permutations = heapPermutation(sentences)
+        let paragraphs = permutations.map(p => [join(p, ' ')])
+
+        pSheet.getRange(1, 1, paragraphs.length).setValues(paragraphs)
+    }
 }
