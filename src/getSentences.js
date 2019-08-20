@@ -4,7 +4,7 @@ import { dir, ui, sSheet } from './globals'
 /**
  * Get all sentences defined in 'Sentences' sheet.
  */
-export function getSentences() {
+export default function getSentences() {
     if (isEmpty(sSheet.getRange('A:A').getValue())) {
         ui.alert('Error', 'Sentences cannot be empty. Please define the sentences in the \'Sentences\' sheet.', ui.ButtonSet.OK)
 
