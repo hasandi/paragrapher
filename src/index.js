@@ -1,10 +1,7 @@
-import { concat, includes, join, replace } from 'lodash-es'
+import { includes } from 'lodash-es'
 import { ui, pSheet, spr } from './globals'
-import cartesianProduct from './cartesianProduct'
-import getWords from './getWords'
-import getSentences from './getSentences'
-import heapPermutation from './heapPermutation'
-import { setupWSheet, setupSSheet, setupPSheet } from './setup';
+import { setupWSheet, setupSSheet, setupPSheet } from './setup'
+import generateParagraphs from './generateParagraphs'
 
 /**
  * The event handler triggered when opening the spreadsheet.
@@ -12,7 +9,7 @@ import { setupWSheet, setupSSheet, setupPSheet } from './setup';
 function onOpen() {
   ui.createMenu('Paragrapher')
     .addItem('Quick setup', 'setup')
-    .addItem('Generate paragraphs', 'generateParagraphs')
+    .addItem('Generate paragraphs', 'start')
     .addToUi()
 }
 
@@ -30,34 +27,32 @@ function setup() {
 /**
  * Generate the paragraphs.
  */
-function generateParagraphs() {
-  let [keywords, values] = getWords()
-  let sentences = getSentences()
-  let permutations = heapPermutation(sentences)
-  let combinations = cartesianProduct(...values)
-  let result = []
+function start() {
+  let res = ui.prompt('Sentences', 'Please input number of sentences to generate (1-7)', ui.ButtonSet.OK)
 
-  for (let i = 0; i < combinations.length; i++) {
-    let str = join(permutations[Math.floor(Math.random() * permutations.length)], ' ')
+  if (res.getSelectedButton() == ui.Button.OK) {
+    let resVal = parseInt(res.getResponseText())
 
-    for (let j = 0; j < keywords.length; j++) {
-      str = replace(str, new RegExp(`\\[${keywords[j]}\\]`, 'g'), combinations[i][j])
+    if (resVal) {
+      if (resVal > 0 && resVal <= 7) {
+        let paragraphs = generateParagraphs(resVal)
+
+        pSheet.clear()
+          .getRange(1, 1, 1, paragraphs[0].length)
+          .setValues([['slug', 'product_slug', 'article']])
+          .getSheet()
+          .getRange(2, 1, paragraphs.length, paragraphs[0].length)
+          .setValues(paragraphs)
+          .getSheet()
+          .autoResizeColumns(1, paragraphs[0].length + 1)
+          .activate()
+      } else {
+        ui.alert('Error', 'Invalid number of sentences. Inputted number must be between 1 and 7.', ui.ButtonSet.OK)
+      }
+    } else {
+      ui.alert('Error', 'Invalid number of sentences. Please only input number.', ui.ButtonSet.OK)
     }
 
-    result.push(concat(combinations[i], [str]))
+    ui.showModalDialog(HtmlService.createHtmlOutput(`<code><pre>${Logger.getLog()}</pre></code>`), 'Log')
   }
-
-  // Logger.log(concat(keywords, 'Result'))
-
-  pSheet.clear()
-    .getRange(1, 1, 1, keywords.length + 1)
-    .setValues([concat(keywords, 'Result')])
-    .getSheet()
-    .getRange(2, 1, result.length, keywords.length + 1)
-    .setValues(result)
-    .getSheet()
-    .autoResizeColumns(1, keywords.length + 1)
-    .activate()
-
-  // ui.showModalDialog(HtmlService.createHtmlOutput(`<code><pre>${Logger.getLog()}</pre></code>`), 'Log')
 }

@@ -8,14 +8,6 @@ function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = 
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
-
-function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
-
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var freeGlobal = (typeof global === "undefined" ? "undefined" : _typeof(global)) == 'object' && global && global.Object === Object && global;
@@ -8023,68 +8015,6 @@ var ui = SpreadsheetApp.getUi();
 var wSheet = spr.getSheetByName('Words');
 var sSheet = spr.getSheetByName('Sentences');
 var pSheet = spr.getSheetByName('Paragraphs');
-
-function cartesianProduct() {
-  return reduce(arguments, function (a, b) {
-    return flatten(map(a, function (x) {
-      return map(b, function (y) {
-        return x.concat([y]);
-      });
-    }), true);
-  }, [[]]);
-}
-
-function getWords() {
-  if (isEmpty(wSheet.getRange('A:A').getValue())) {
-    ui.alert('Error', 'Words cannot be empty. Please define the words in the \'Words\' sheet.', ui.ButtonSet.OK);
-    return false;
-  }
-
-  var lastCol = wSheet.getRange('A1').getNextDataCell(dir.NEXT).getColumn();
-  var keys = flatten(wSheet.getRange(1, 1, 1, lastCol).getValues());
-  var values = [];
-
-  for (i = 1; i <= lastCol; i++) {
-    var lastRow = wSheet.getRange(2, i).getNextDataCell(dir.DOWN).getRow();
-    var data = flatten(wSheet.getRange(2, i, lastRow - 1, 1).getValues());
-    values.push(data);
-  }
-
-  return [keys, values];
-}
-
-function getSentences() {
-  if (isEmpty(sSheet.getRange('A:A').getValue())) {
-    ui.alert('Error', 'Sentences cannot be empty. Please define the sentences in the \'Sentences\' sheet.', ui.ButtonSet.OK);
-    return false;
-  }
-
-  var lastRow = sSheet.getRange('A1').getNextDataCell(dir.DOWN).getRow();
-  return flatten(sSheet.getRange(1, 1, lastRow, 1).getValues());
-}
-
-function heapPermutation(arr) {
-  var n = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : arr.length;
-  var result = [];
-  if (n <= 1) return [arr.slice()];
-
-  for (var _i = 0; _i <= n - 1; _i++) {
-    result.push.apply(result, _toConsumableArray(heapPermutation(arr, n - 1)));
-
-    if (n % 2 === 0) {
-      var _ref = [arr[_i], arr[n - 1]];
-      arr[n - 1] = _ref[0];
-      arr[_i] = _ref[1];
-    } else {
-      var _ref2 = [arr[0], arr[n - 1]];
-      arr[n - 1] = _ref2[0];
-      arr[0] = _ref2[1];
-    }
-  }
-
-  return result;
-}
-
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function commonjsRequire() {
@@ -22870,8 +22800,116 @@ function setupPSheet() {
   spr.insertSheet('Paragraphs', 2).getRange('A1').setValue('The generated paragraph will appear here').getSheet().autoResizeColumn(1).deleteColumns(2, 25);
 }
 
+function cartesianProduct() {
+  return reduce(arguments, function (a, b) {
+    return flatten(map(a, function (x) {
+      return map(b, function (y) {
+        return x.concat([y]);
+      });
+    }), true);
+  }, [[]]);
+}
+
+function combination(arr, r) {
+  var n = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : arr.length;
+  var data = [];
+  var x = combinationUtil(arr, data, 0, n - 1, 0, r);
+  return flattenDepth(x, r - 1);
+}
+
+function combinationUtil(arr, data, start, end, index, r) {
+  var result = [];
+  if (index === r) return slice(data, 0, r);
+
+  for (var _i = start; _i <= end && end - _i + 1 >= r - index; _i++) {
+    data[index] = arr[_i];
+    result.push(combinationUtil(arr, data, _i + 1, end, index + 1, r));
+  }
+
+  return result;
+}
+
+function getSentences() {
+  if (isEmpty(sSheet.getRange('A:A').getValue())) {
+    ui.alert('Error', 'Sentences cannot be empty. Please define the sentences in the \'Sentences\' sheet.', ui.ButtonSet.OK);
+    return false;
+  }
+
+  var lastRow = sSheet.getRange('A1').getNextDataCell(dir.DOWN).getRow();
+  return flatten(sSheet.getRange(1, 1, lastRow, 1).getValues());
+}
+
+function getWords() {
+  if (isEmpty(wSheet.getRange('A:A').getValue())) {
+    ui.alert('Error', 'Words cannot be empty. Please define the words in the \'Words\' sheet.', ui.ButtonSet.OK);
+    return false;
+  }
+
+  var lastCol = wSheet.getRange('A1').getNextDataCell(dir.NEXT).getColumn();
+  var keys = flatten(wSheet.getRange(1, 1, 1, lastCol).getValues());
+  var values = [];
+
+  for (i = 1; i <= lastCol; i++) {
+    var lastRow = wSheet.getRange(2, i).getNextDataCell(dir.DOWN).getRow();
+    var data = flatten(wSheet.getRange(2, i, lastRow - 1, 1).getValues());
+    values.push(compact(data));
+  }
+
+  return [keys, values];
+}
+
+function shuffle$1(arr) {
+  var curIdx = arr.length,
+      tempVal,
+      randIdx;
+
+  while (0 !== curIdx) {
+    randIdx = Math.floor(Math.random() * curIdx);
+    curIdx -= 1;
+    tempVal = arr[curIdx];
+    arr[curIdx] = arr[randIdx];
+    arr[randIdx] = tempVal;
+  }
+
+  return arr;
+}
+
+function generateParagraphs(length) {
+  var _getWords = getWords(),
+      _getWords2 = _slicedToArray(_getWords, 2),
+      keywords = _getWords2[0],
+      values = _getWords2[1];
+
+  var wCombinations = cartesianProduct(values[0], values[1], values[2]);
+  var sentences = getSentences();
+  var sCombinations = sentences.length < length ? combination(sentences, sentences.length) : combination(sentences, length);
+  var result = [];
+
+  var _loop = function _loop(_i2) {
+    var pickedSentences = shuffle$1(sCombinations[Math.floor(Math.random() * sCombinations.length)]);
+    replacedSentences = pickedSentences.map(function (s) {
+      for (var j = 0; j < keywords.length; j++) {
+        var replacement = j < 3 ? wCombinations[_i2][j] : values[j][Math.floor(Math.random() * values[j].length)];
+        s = replace(s, new RegExp("\\[".concat(keywords[j], "\\]"), 'g'), replacement);
+      }
+
+      return s.charAt(0).toUpperCase() + s.substring(1);
+    });
+    var slug = "".concat(wCombinations[_i2][0], "-").concat(kebabCase(wCombinations[_i2][1]), "-").concat(wCombinations[_i2][2]);
+    var productSlug = kebabCase(wCombinations[_i2][1]);
+    var str = join(replacedSentences, ' ');
+    result.push(concat(slug, productSlug, str));
+  };
+
+  for (var _i2 = 0; _i2 < wCombinations.length; _i2++) {
+    _loop(_i2);
+  }
+
+  return result;
+}
+
 function onOpen() {
-  ui.createMenu('Paragrapher').addItem('Quick setup', 'setup').addItem('Generate paragraphs', 'generateParagraphs').addToUi();
+  ui.createMenu('Paragrapher').addItem('Quick setup', 'setup').addItem('Generate paragraphs', 'start').addToUi();
 }
 
 function setup() {
@@ -22883,26 +22921,23 @@ function setup() {
   if (!includes(shtNames, 'Paragraphs')) setupPSheet();
 }
 
-function generateParagraphs() {
-  var _getWords = getWords(),
-      _getWords2 = _slicedToArray(_getWords, 2),
-      keywords = _getWords2[0],
-      values = _getWords2[1];
+function start() {
+  var res = ui.prompt('Sentences', 'Please input number of sentences to generate (1-7)', ui.ButtonSet.OK);
 
-  var sentences = getSentences();
-  var permutations = heapPermutation(sentences);
-  var combinations = cartesianProduct.apply(void 0, _toConsumableArray(values));
-  var result = [];
+  if (res.getSelectedButton() == ui.Button.OK) {
+    var resVal = parseInt(res.getResponseText());
 
-  for (var _i2 = 0; _i2 < combinations.length; _i2++) {
-    var str = join(permutations[Math.floor(Math.random() * permutations.length)], ' ');
-
-    for (var j = 0; j < keywords.length; j++) {
-      str = replace(str, new RegExp("\\[".concat(keywords[j], "\\]"), 'g'), combinations[_i2][j]);
+    if (resVal) {
+      if (resVal > 0 && resVal <= 7) {
+        var paragraphs = generateParagraphs(resVal);
+        pSheet.clear().getRange(1, 1, 1, paragraphs[0].length).setValues([['slug', 'product_slug', 'article']]).getSheet().getRange(2, 1, paragraphs.length, paragraphs[0].length).setValues(paragraphs).getSheet().autoResizeColumns(1, paragraphs[0].length + 1).activate();
+      } else {
+        ui.alert('Error', 'Invalid number of sentences. Inputted number must be between 1 and 7.', ui.ButtonSet.OK);
+      }
+    } else {
+      ui.alert('Error', 'Invalid number of sentences. Please only input number.', ui.ButtonSet.OK);
     }
 
-    result.push(concat(combinations[_i2], [str]));
+    ui.showModalDialog(HtmlService.createHtmlOutput("<code><pre>".concat(Logger.getLog(), "</pre></code>")), 'Log');
   }
-
-  pSheet.clear().getRange(1, 1, 1, keywords.length + 1).setValues([concat(keywords, 'Result')]).getSheet().getRange(2, 1, result.length, keywords.length + 1).setValues(result).getSheet().autoResizeColumns(1, keywords.length + 1).activate();
 }

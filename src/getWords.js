@@ -1,4 +1,4 @@
-import { flatten, isEmpty } from 'lodash-es'
+import { compact, flatten, isEmpty } from 'lodash-es'
 import { dir, ui, wSheet } from './globals'
 
 /**
@@ -19,7 +19,7 @@ export default function getWords() {
     let lastRow = wSheet.getRange(2, i).getNextDataCell(dir.DOWN).getRow()
     let data = flatten(wSheet.getRange(2, i, lastRow - 1, 1).getValues())
 
-    values.push(data)
+    values.push(compact(data))
   }
 
   return [keys, values]
