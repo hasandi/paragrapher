@@ -23,7 +23,7 @@
     "@babel/preset-env": "^7.5.5",
     "@google/clasp": "^2.2.1",
     "faker": "^4.1.0",
-    "lodash-es": "^4.17.15",
+    "lodash-es": "^4.17.21",
     "rollup": "^1.19.4",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-cleanup": "^3.1.1",
